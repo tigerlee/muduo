@@ -5,6 +5,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <time.h>
+#include <unistd.h>
 
 using namespace muduo;
 
@@ -12,10 +13,15 @@ using namespace muduo;
 class LogFile::File : boost::noncopyable
 {
  public:
-  explicit File(const string& filename)
+  explicit File(const string& filename, const string& symlink_name)
     : fp_(::fopen(filename.data(), "ae")),
       writtenBytes_(0)
   {
+    unlink(symlink_name.data());
+    char* buf = strdup(filename.data());
+    symlink(basename(buf), symlink_name.data());
+    free(buf);
+
     assert(fp_);
     ::setbuffer(fp_, buffer_, sizeof buffer_);
     // posix_fadvise POSIX_FADV_DONTNEED ?
@@ -82,7 +88,7 @@ LogFile::LogFile(const string& basename,
     lastRoll_(0),
     lastFlush_(0)
 {
-  assert(basename.find('/') == string::npos);
+//  assert(basename.find('/') == string::npos);
   rollFile();
 }
 
@@ -152,6 +158,7 @@ void LogFile::rollFile()
 {
   time_t now = 0;
   string filename = getLogFileName(basename_, &now);
+  string symlink_name = getLogFileSymLinkName(basename_);
   time_t start = now / kRollPerSeconds_ * kRollPerSeconds_;
 
   if (now > lastRoll_)
@@ -159,7 +166,7 @@ void LogFile::rollFile()
     lastRoll_ = now;
     lastFlush_ = now;
     startOfPeriod_ = start;
-    file_.reset(new File(filename));
+    file_.reset(new File(filename, symlink_name));
   }
 }
 
@@ -184,3 +191,7 @@ string LogFile::getLogFileName(const string& basename, time_t* now)
   return filename;
 }
 
+string LogFile::getLogFileSymLinkName(const string& basename)
+{
+  return basename + ".log";
+}

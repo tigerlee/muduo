@@ -26,6 +26,7 @@ class LogFile : boost::noncopyable
   void append_unlocked(const char* logline, int len);
 
   static string getLogFileName(const string& basename, time_t* now);
+  static string getLogFileSymLinkName(const string& basename);
   void rollFile();
 
   const string basename_;
