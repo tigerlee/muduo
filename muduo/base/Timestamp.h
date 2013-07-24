@@ -40,8 +40,9 @@ class Timestamp : public muduo::copyable,
 
   // default copy/assignment/dtor are Okay
 
-  string toString() const;
-  string toFormattedString() const;
+  string  toString() const;
+  string  toFormattedString() const;
+  int64_t toIntTime() const;
 
   bool valid() const { return microSecondsSinceEpoch_ > 0; }
 

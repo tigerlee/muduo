@@ -41,6 +41,18 @@ string Timestamp::toFormattedString() const
   return buf;
 }
 
+int64_t Timestamp::toIntTime() const
+{
+  time_t seconds = static_cast<time_t>(microSecondsSinceEpoch_ / kMicroSecondsPerSecond);
+  int microseconds = static_cast<int>(microSecondsSinceEpoch_ % kMicroSecondsPerSecond);
+  struct tm tm_time;
+  gmtime_r(&seconds, &tm_time);
+
+  int64_t t = tm_time.tm_hour * 10000000000l + tm_time.tm_min * 100000000l
+      + tm_time.tm_sec * 1000000l + microseconds;
+  return t;
+}
+
 Timestamp Timestamp::now()
 {
   struct timeval tv;
