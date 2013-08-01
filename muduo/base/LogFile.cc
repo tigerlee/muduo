@@ -180,7 +180,7 @@ string LogFile::getLogFileName(const string& basename, time_t* now)
   char pidbuf[32];
   struct tm tm;
   *now = time(NULL);
-  gmtime_r(now, &tm); // FIXME: localtime_r ?
+  localtime_r(now, &tm); // FIXME: localtime_r ?
   strftime(timebuf, sizeof timebuf, ".%Y%m%d-%H%M%S.", &tm);
   filename += timebuf;
   filename += ProcessInfo::hostname();
