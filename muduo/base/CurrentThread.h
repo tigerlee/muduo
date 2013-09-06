@@ -6,6 +6,8 @@
 #ifndef MUDUO_BASE_CURRENTTHREAD_H
 #define MUDUO_BASE_CURRENTTHREAD_H
 
+#include <stdint.h>
+
 namespace muduo
 {
 namespace CurrentThread
@@ -18,7 +20,7 @@ namespace CurrentThread
 
   inline int tid()
   {
-    if (t_cachedTid == 0)
+    if (__builtin_expect(t_cachedTid == 0, 0))
     {
       cacheTid();
     }
@@ -36,6 +38,8 @@ namespace CurrentThread
   }
 
   bool isMainThread();
+
+  void sleepUsec(int64_t usec);
 }
 }
 
