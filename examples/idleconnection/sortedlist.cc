@@ -95,10 +95,8 @@ void EchoServer::onMessage(const TcpConnectionPtr& conn,
   assert(!conn->getContext().empty());
   Node* node = boost::any_cast<Node>(conn->getMutableContext());
   node->lastReceiveTime = time;
-  // move node inside list with list::splice()
-  connectionList_.erase(node->position);
-  connectionList_.push_back(conn);
-  node->position = --connectionList_.end();
+  connectionList_.splice(connectionList_.end(), connectionList_, node->position);
+  assert(node->position == --connectionList_.end());
 
   dumpConnectionList();
 }
@@ -117,7 +115,12 @@ void EchoServer::onTimer()
       double age = timeDifference(now, n->lastReceiveTime);
       if (age > idleSeconds_)
       {
-        conn->shutdown();
+        if (conn->connected())
+        {
+          conn->shutdown();
+          LOG_INFO << "shutting down " << conn->name();
+          conn->forceCloseWithDelay(3.5);  // > round trip of the whole Internet.
+        }
       }
       else if (age < 0)
       {

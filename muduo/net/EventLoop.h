@@ -18,7 +18,7 @@
 #include <boost/scoped_ptr.hpp>
 
 #include <muduo/base/Mutex.h>
-#include <muduo/base/Thread.h>
+#include <muduo/base/CurrentThread.h>
 #include <muduo/base/Timestamp.h>
 #include <muduo/net/Callbacks.h>
 #include <muduo/net/TimerId.h>
@@ -58,7 +58,7 @@ class EventLoop : boost::noncopyable
   void quit();
 
   ///
-  /// Time when poll returns, usually means data arrivial.
+  /// Time when poll returns, usually means data arrival.
   ///
   Timestamp pollReturnTime() const { return pollReturnTime_; }
 
@@ -152,7 +152,7 @@ class EventLoop : boost::noncopyable
   ChannelList activeChannels_;
   Channel* currentActiveChannel_;
   MutexLock mutex_;
-  std::vector<Functor> pendingFunctors_; // @BuardedBy mutex_
+  std::vector<Functor> pendingFunctors_; // @GuardedBy mutex_
 };
 
 }

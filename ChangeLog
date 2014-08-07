@@ -1,3 +1,47 @@
+2014-06-30   Shuo Chen  <chenshuo@chenshuo.com>
+  * Fix boundary check in Buffer::findEOL() by <renxingsong>.
+  * Fix typos in InetAddress.cc by <huangml.zh>.
+  * Fix 32-bit integer overflow bug in time_client by <guochy2012>.
+  * Update comments in Buffer::readFd() by <huahang>.
+  * Add ThreadPool::setThreadInitCallback().
+  * Rename GzipStream to ZlibStream.
+  * Version 1.0.2
+
+2014-04-10   Shuo Chen  <chenshuo@chenshuo.com>
+  * More ProcessInfo functions.
+  * Add GzipFile (in C++11 only) and GzipOutputStream.
+  * Add SystemInspector.
+  * muduo::Threads now sets thread name with prctl().
+  * Version 1.0.1
+
+2014-03-12   Shuo Chen  <chenshuo@chenshuo.com>
+  * Add TCP and RPC balancer examples
+  * Version 1.0.0
+
+2014-03-05   Shuo Chen  <chenshuo@chenshuo.com>
+  * Introduce class StringArg for passing C-style string arguments.
+  * Support localtime in logging.
+  * Version 1.0.0-rc2
+
+2014-02-22   Shuo Chen  <chenshuo@chenshuo.com>
+  * Default to release build.
+  * Version 1.0.0-rc1
+
+2014-02-22   Shuo Chen  <chenshuo@chenshuo.com>
+  * Add base/WeakCallback.h
+  * Add TcpConnection::forceCloseWithDelay().
+  * Add InetAddress::resolve for sync DNS resolving.
+  * Add simple Protobuf codec for single message type.
+  * Add ACE ttcp and logging examples.
+  * Fix race conditoin in RpcChannel::CallMethod().
+  * Version 0.9.8
+
+2014-01-11   Shuo Chen  <chenshuo@chenshuo.com>
+  * Add TcpConnection::forceClose().
+  * Add fastcgi nginx.conf example
+  * Fix iterator invalidation in hub.cc.
+  * Version 0.9.7
+
 2013-10-21   Shuo Chen  <chenshuo@chenshuo.com>
   * Minor fixes.
   * Version 0.9.6

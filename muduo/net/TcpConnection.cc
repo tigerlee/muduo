@@ -9,6 +9,7 @@
 #include <muduo/net/TcpConnection.h>
 
 #include <muduo/base/Logging.h>
+#include <muduo/base/WeakCallback.h>
 #include <muduo/net/Channel.h>
 #include <muduo/net/EventLoop.h>
 #include <muduo/net/Socket.h>
@@ -27,6 +28,7 @@ void muduo::net::defaultConnectionCallback(const TcpConnectionPtr& conn)
   LOG_TRACE << conn->localAddress().toIpPort() << " -> "
             << conn->peerAddress().toIpPort() << " is "
             << (conn->connected() ? "UP" : "DOWN");
+  // do not call conn->forceClose(), because some users want to register message callback only.
 }
 
 void muduo::net::defaultMessageCallback(const TcpConnectionPtr&,
@@ -69,23 +71,9 @@ TcpConnection::~TcpConnection()
             << " fd=" << channel_->fd();
 }
 
-void TcpConnection::send(const void* data, size_t len)
+void TcpConnection::send(const void* data, int len)
 {
-  if (state_ == kConnected)
-  {
-    if (loop_->isInLoopThread())
-    {
-      sendInLoop(data, len);
-    }
-    else
-    {
-      string message(static_cast<const char*>(data), len);
-      loop_->runInLoop(
-          boost::bind(&TcpConnection::sendInLoop,
-                      this,     // FIXME
-                      message));
-    }
-  }
+  send(StringPiece(static_cast<const char*>(data), len));
 }
 
 void TcpConnection::send(const StringPiece& message)
@@ -206,6 +194,62 @@ void TcpConnection::shutdownInLoop()
   {
     // we are not writing
     socket_->shutdownWrite();
+  }
+}
+
+// void TcpConnection::shutdownAndForceCloseAfter(double seconds)
+// {
+//   // FIXME: use compare and swap
+//   if (state_ == kConnected)
+//   {
+//     setState(kDisconnecting);
+//     loop_->runInLoop(boost::bind(&TcpConnection::shutdownAndForceCloseInLoop, this, seconds));
+//   }
+// }
+
+// void TcpConnection::shutdownAndForceCloseInLoop(double seconds)
+// {
+//   loop_->assertInLoopThread();
+//   if (!channel_->isWriting())
+//   {
+//     // we are not writing
+//     socket_->shutdownWrite();
+//   }
+//   loop_->runAfter(
+//       seconds,
+//       makeWeakCallback(shared_from_this(),
+//                        &TcpConnection::forceCloseInLoop));
+// }
+
+void TcpConnection::forceClose()
+{
+  // FIXME: use compare and swap
+  if (state_ == kConnected || state_ == kDisconnecting)
+  {
+    setState(kDisconnecting);
+    loop_->queueInLoop(boost::bind(&TcpConnection::forceCloseInLoop, shared_from_this()));
+  }
+}
+
+void TcpConnection::forceCloseWithDelay(double seconds)
+{
+  if (state_ == kConnected || state_ == kDisconnecting)
+  {
+    setState(kDisconnecting);
+    loop_->runAfter(
+        seconds,
+        makeWeakCallback(shared_from_this(),
+                         &TcpConnection::forceClose));  // not forceCloseInLoop to avoid race condition
+  }
+}
+
+void TcpConnection::forceCloseInLoop()
+{
+  loop_->assertInLoopThread();
+  if (state_ == kConnected || state_ == kDisconnecting)
+  {
+    // as if we received 0 byte in handleRead();
+    handleClose();
   }
 }
 
