@@ -71,7 +71,7 @@ class Channel : boost::noncopyable
   bool isNoneEvent() const { return events_ == kNoneEvent; }
 
   void enableReading() { events_ |= kReadEvent; update(); }
-  // void disableReading() { events_ &= ~kReadEvent; update(); }
+  void disableReading() { events_ &= ~kReadEvent; update(); }
   void enableWriting() { events_ |= kWriteEvent; update(); }
   void disableWriting() { events_ &= ~kWriteEvent; update(); }
   void disableAll() { events_ = kNoneEvent; update(); }
@@ -100,13 +100,14 @@ class Channel : boost::noncopyable
   EventLoop* loop_;
   const int  fd_;
   int        events_;
-  int        revents_;
+  int        revents_; // it's the received event types of epoll or poll
   int        index_; // used by Poller.
   bool       logHup_;
 
   boost::weak_ptr<void> tie_;
   bool tied_;
   bool eventHandling_;
+  bool addedToLoop_;
   ReadEventCallback readCallback_;
   EventCallback writeCallback_;
   EventCallback closeCallback_;
